@@ -11,18 +11,32 @@ log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 setup_nvm() {
-    if [ -d "$HOME/.nvm" ]; then
-        export NVM_DIR="$HOME/.nvm"
-        if [ -s "$NVM_DIR/nvm.sh" ]; then
-            . "$NVM_DIR/nvm.sh" 2>/dev/null
+    for nvm_dir in "$HOME/.nvm" "/root/.nvm" "/opt/.nvm" "/usr/local/nvm"; do
+        if [ -d "$nvm_dir" ]; then
+            export NVM_DIR="$nvm_dir"
+            if [ -s "$NVM_DIR/nvm.sh" ]; then
+                . "$NVM_DIR/nvm.sh" 2>/dev/null
+            fi
         fi
-    fi
+    done
     
-    if [ -d "/root/.nvm" ]; then
-        export NVM_DIR="/root/.nvm"
-        if [ -s "$NVM_DIR/nvm.sh" ]; then
-            . "$NVM_DIR/nvm.sh" 2>/dev/null
+    for node_dir in "$HOME/.nvm/versions/node" "/root/.nvm/versions/node" "/opt/.nvm/versions/node" "/usr/local/nvm/versions/node"; do
+        if [ -d "$node_dir" ]; then
+            latest_node=$(ls -t "$node_dir" 2>/dev/null | head -1)
+            if [ -n "$latest_node" ] && [ -x "$node_dir/$latest_node/bin/node" ]; then
+                export PATH="$node_dir/$latest_node/bin:$PATH"
+            fi
         fi
+    done
+    
+    if [ -d "$HOME/.local/bin" ] && [ -x "$HOME/.local/bin/node" ]; then
+        export PATH="$HOME/.local/bin:$PATH"
+    fi
+    if [ -d "/usr/local/bin" ] && [ -x "/usr/local/bin/node" ]; then
+        export PATH="/usr/local/bin:$PATH"
+    fi
+    if [ -d "/opt/node/bin" ] && [ -x "/opt/node/bin/node" ]; then
+        export PATH="/opt/node/bin:$PATH"
     fi
 }
 
@@ -44,19 +58,26 @@ get_local_ip() {
 }
 
 check_command() {
-    if ! command -v "$1" &> /dev/null; then
-        if [ "$1" = "node" ] && [ -x "$HOME/.nvm/versions/node/$(ls $HOME/.nvm/versions/node/ 2>/dev/null | tail -1)/bin/node" ]; then
-            export PATH="$HOME/.nvm/versions/node/$(ls $HOME/.nvm/versions/node/ 2>/dev/null | tail -1)/bin:$PATH"
+    for attempt in 1 2 3; do
+        if command -v "$1" &> /dev/null; then
             return 0
         fi
-        if [ "$1" = "node" ] && [ -x "/root/.nvm/versions/node/$(ls /root/.nvm/versions/node/ 2>/dev/null | tail -1)/bin/node" ]; then
-            export PATH="/root/.nvm/versions/node/$(ls /root/.nvm/versions/node/ 2>/dev/null | tail -1)/bin:$PATH"
-            return 0
+        
+        if [ "$1" = "node" ] || [ "$1" = "npm" ]; then
+            for search_dir in "$HOME/.nvm/versions/node" "/root/.nvm/versions/node" "/opt/.nvm/versions/node" "/usr/local/nvm/versions/node"; do
+                if [ -d "$search_dir" ]; then
+                    for version_dir in "$search_dir"/*; do
+                        if [ -d "$version_dir" ] && [ -x "$version_dir/bin/$1" ]; then
+                            export PATH="$version_dir/bin:$PATH"
+                        fi
+                    done
+                fi
+            done
         fi
-        log_error "缺少必需命令: $1"
-        return 1
-    fi
-    return 0
+    done
+    
+    log_error "缺少必需命令: $1"
+    return 1
 }
 
 setup_nvm
