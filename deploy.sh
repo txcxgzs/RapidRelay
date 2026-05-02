@@ -211,12 +211,25 @@ fi
 
 log_info "正在安装依赖..."
 
-if ! npm install --legacy-peer-deps 2>&1; then
-    log_error "依赖安装失败，正在重试..."
-    if ! npm install --legacy-peer-deps --registry=https://registry.npmmirror.com 2>&1; then
-        log_error "依赖安装失败，请检查网络连接"
-        exit 1
-    fi
+install_deps() {
+    for registry in "" "--registry=https://registry.npmmirror.com" "--registry=https://registry.npmjs.org" "--registry=https://r.cnpmjs.org"; do
+        if [ -z "$registry" ]; then
+            log_info "尝试使用默认镜像源..."
+        else
+            log_info "尝试使用镜像源: $registry"
+        fi
+        
+        if npm install --legacy-peer-deps $registry 2>&1; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+if ! install_deps; then
+    log_error "依赖安装失败，请检查网络连接"
+    log_info "您也可以尝试手动执行: npm install"
+    exit 1
 fi
 
 log_success "依赖安装完成"
