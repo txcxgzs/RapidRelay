@@ -52,7 +52,7 @@ get_local_ip() {
 }
 
 check_running() {
-    pkill -0 -f "node.*server.js" 2>/dev/null
+    pgrep -f "node.*server.js" > /dev/null 2>&1
     return $?
 }
 
