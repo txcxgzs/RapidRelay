@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RapidRelay - 文件加速下载服务</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus {
+            border-color: #667eea;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .info-box {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f5f7fa;
+            border-radius: 8px;
+        }
+        
+        .info-box h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .info-box ul {
+            list-style: none;
+            color: #666;
+        }
+        
+        .info-box li {
+            padding: 6px 0;
+            padding-left: 24px;
+            position: relative;
+        }
+        
+        .info-box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #e6f7ff;
+            color: #0066cc;
+            display: block;
+        }
+        
+        .status.error {
+            background: #fff1f0;
+            color: #ff4d4f;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 RapidRelay</h1>
+            <p>文件加速下载服务</p>
+        </div>
+        
+        <div class="input-group">
+            <label for="fileUrl">文件链接</label>
+            <input type="text" id="fileUrl" placeholder="输入 OneDrive、GitHub Releases 等文件链接">
+        </div>
+        
+        <button class="btn" onclick="startDownload()">立即加速下载</button>
+        
+        <div id="status" class="status"></div>
+        
+        <div class="info-box">
+            <h3>支持的链接类型</h3>
+            <ul>
+                <li>OneDrive / 1drv.ms 直链</li>
+                <li>GitHub Releases 下载链接</li>
+                <li>其他 HTTP/HTTPS 直接下载链接</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = 'status ' + type;
+        }
+        
+        function startDownload() {
+            const fileUrl = document.getElementById('fileUrl').value.trim();
+            
+            if (!fileUrl) {
+                showStatus('请输入文件链接', 'error');
+                return;
+            }
+            
+            try {
+                new URL(fileUrl);
+            } catch {
+                showStatus('请输入有效的 URL', 'error');
+                return;
+            }
+            
+            showStatus('正在准备下载...', 'success');
+            
+            const downloadUrl = '/download?url=' + encodeURIComponent(fileUrl);
+            
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = downloadUrl;
+            document.body.appendChild(iframe);
+            
+            setTimeout(() => {
+                showStatus('下载已开始，如未自动下载请点击重试', 'success');
+            }, 1000);
+        }
+        
+        document.getElementById('fileUrl').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                startDownload();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "rapidrelay",
+  "version": "1.0.0",
+  "description": "文件中转加速服务，支持 OneDrive、GitHub 等链接",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["download", "proxy", "onedrive", "github"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
