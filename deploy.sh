@@ -60,7 +60,7 @@ stop_service() {
     log_info "正在停止服务..."
     pkill -f "node.*server.js" 2>/dev/null
     sleep 1
-    if pkill -0 -f "node.*server.js" 2>/dev/null; then
+    if pgrep -f "node.*server.js" > /dev/null 2>&1; then
         pkill -9 -f "node.*server.js" 2>/dev/null
         sleep 1
     fi
@@ -342,14 +342,14 @@ install_or_update_service() {
     
     echo ""
     echo "=========================================="
-    echo "  ✅ 服务已成功启动!"
+    echo "  ✅ 部署成功！"
     echo "=========================================="
     echo ""
     
     if [ "$LISTEN_IP" = "127.0.0.1" ]; then
         echo "  监听地址: localhost:$PORT"
         echo "  本机访问: http://127.0.0.1:$PORT"
-        echo "  局域网:  http://$LOCAL_IP:$PORT (需配置反向代理)"
+        echo "  局域网:   http://$LOCAL_IP:$PORT (需配置反向代理)"
         echo ""
         echo "  🔧 反向代理配置示例 (Nginx):"
         echo "     location / {"
