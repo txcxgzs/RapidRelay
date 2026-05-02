@@ -12,18 +12,15 @@
 - 🔒 支持 HTTP/HTTPS 协议
 - 📦 支持 GitHub Releases、OneDrive 等链接
 
-## 快速开始
+## 一键部署
 
 ```bash
 # 克隆项目
 git clone https://github.com/txcxgzs/RapidRelay.git
 cd RapidRelay
 
-# 安装依赖
-npm install
-
-# 启动服务
-npm start
+# 一键部署
+chmod +x deploy.sh && ./deploy.sh
 ```
 
 服务默认监听 3000 端口，可通过环境变量 `PORT` 修改。
