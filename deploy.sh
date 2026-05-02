@@ -1,5 +1,4 @@
 #!/bin/bash
-
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -10,6 +9,22 @@ log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+
+setup_nvm() {
+    if [ -d "$HOME/.nvm" ]; then
+        export NVM_DIR="$HOME/.nvm"
+        if [ -s "$NVM_DIR/nvm.sh" ]; then
+            . "$NVM_DIR/nvm.sh" 2>/dev/null
+        fi
+    fi
+    
+    if [ -d "/root/.nvm" ]; then
+        export NVM_DIR="/root/.nvm"
+        if [ -s "$NVM_DIR/nvm.sh" ]; then
+            . "$NVM_DIR/nvm.sh" 2>/dev/null
+        fi
+    fi
+}
 
 echo ""
 echo "=========================================="
@@ -30,16 +45,32 @@ get_local_ip() {
 
 check_command() {
     if ! command -v "$1" &> /dev/null; then
+        if [ "$1" = "node" ] && [ -x "$HOME/.nvm/versions/node/$(ls $HOME/.nvm/versions/node/ 2>/dev/null | tail -1)/bin/node" ]; then
+            export PATH="$HOME/.nvm/versions/node/$(ls $HOME/.nvm/versions/node/ 2>/dev/null | tail -1)/bin:$PATH"
+            return 0
+        fi
+        if [ "$1" = "node" ] && [ -x "/root/.nvm/versions/node/$(ls /root/.nvm/versions/node/ 2>/dev/null | tail -1)/bin/node" ]; then
+            export PATH="/root/.nvm/versions/node/$(ls /root/.nvm/versions/node/ 2>/dev/null | tail -1)/bin:$PATH"
+            return 0
+        fi
         log_error "缺少必需命令: $1"
         return 1
     fi
     return 0
 }
 
+setup_nvm
+
 log_info "正在检查环境..."
 
 if ! check_command "node"; then
-    echo "请先安装 Node.js: https://nodejs.org/"
+    echo ""
+    log_error "Node.js 未安装或未配置环境变量"
+    echo ""
+    echo "  解决方案："
+    echo "  1. 如果使用 nvm，运行: source ~/.bashrc"
+    echo "  2. 或重新加载: export NVM_DIR=\"\$HOME/.nvm\" && . \"\$NVM_DIR/nvm.sh\""
+    echo "  3. 安装 Node.js: https://nodejs.org/"
     exit 1
 fi
 
@@ -50,6 +81,7 @@ fi
 
 log_success "Node.js 版本: $(node -v)"
 log_success "npm 版本: $(npm -v)"
+
 echo ""
 
 DEFAULT_PORT=3000
@@ -60,9 +92,10 @@ if ! [[ "$PORT" =~ ^[0-9]+$ ]] || [ "$PORT" -lt 1 ] || [ "$PORT" -gt 65535 ]; th
     log_error "端口必须是 1-65535 之间的数字"
     exit 1
 fi
-log_info "使用端口: $PORT"
-echo ""
 
+log_info "使用端口: $PORT"
+
+echo ""
 echo "=========================================="
 echo "  选择服务监听模式"
 echo "=========================================="
@@ -104,6 +137,7 @@ case "$MODE" in
 esac
 
 log_info "监听模式: $MODE_DESC ($LISTEN_IP)"
+
 echo ""
 
 if [ "$MODE" = "2" ] || [ "$MODE" = "3" ]; then
@@ -117,6 +151,7 @@ if [ "$MODE" = "2" ] || [ "$MODE" = "3" ]; then
 fi
 
 log_info "正在安装依赖..."
+
 if ! npm install --legacy-peer-deps 2>&1; then
     log_error "依赖安装失败，正在重试..."
     if ! npm install --legacy-peer-deps --registry=https://registry.npmmirror.com 2>&1; then
@@ -126,6 +161,7 @@ if ! npm install --legacy-peer-deps 2>&1; then
 fi
 
 log_success "依赖安装完成"
+
 echo ""
 
 if [ -f "package.json" ] && grep -q '"start":' package.json 2>/dev/null; then
