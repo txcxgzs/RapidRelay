@@ -6,20 +6,21 @@
     <title>RapidRelay - 文件加速下载服务</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #08080c;
-            --bg-secondary: #0d0d14;
-            --bg-card: rgba(13, 13, 20, 0.7);
-            --accent: #00e5a0;
-            --accent-dim: rgba(0, 229, 160, 0.15);
-            --accent-glow: rgba(0, 229, 160, 0.4);
-            --text-primary: #f0f0f5;
-            --text-secondary: #8888a0;
-            --text-muted: #55556a;
-            --border: rgba(255, 255, 255, 0.06);
-            --border-hover: rgba(255, 255, 255, 0.12);
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: rgba(18, 18, 26, 0.8);
+            --accent-primary: #00f5d4;
+            --accent-secondary: #7b2cbf;
+            --accent-tertiary: #ff6b6b;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --text-muted: #6b6b7b;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --glow-primary: rgba(0, 245, 212, 0.15);
+            --glow-secondary: rgba(123, 44, 191, 0.15);
         }
 
         * {
@@ -29,133 +30,218 @@
         }
 
         body {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
-            position: relative;
             overflow-x: hidden;
+            position: relative;
         }
 
         body::before {
             content: '';
             position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: 
-                radial-gradient(ellipse 40% 30% at 30% 20%, rgba(0, 229, 160, 0.08), transparent),
-                radial-gradient(ellipse 35% 25% at 70% 80%, rgba(80, 80, 180, 0.06), transparent);
+                radial-gradient(ellipse 80% 50% at 20% 40%, var(--glow-secondary), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 60%, var(--glow-primary), transparent);
             pointer-events: none;
             z-index: 0;
+        }
+
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 1;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.4;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .shape-1 {
+            width: 300px;
+            height: 300px;
+            background: var(--accent-primary);
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .shape-2 {
+            width: 250px;
+            height: 250px;
+            background: var(--accent-secondary);
+            top: 60%;
+            right: 10%;
+            animation-delay: -5s;
+        }
+
+        .shape-3 {
+            width: 200px;
+            height: 200px;
+            background: var(--accent-tertiary);
+            bottom: 20%;
+            left: 30%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -30px) scale(1.1); }
+            50% { transform: translate(-20px, 20px) scale(0.9); }
+            75% { transform: translate(20px, 30px) scale(1.05); }
         }
 
         .container {
             position: relative;
             z-index: 10;
-            width: 100%;
-            max-width: 640px;
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 60px 24px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        .header {
+        .hero {
             text-align: center;
             margin-bottom: 48px;
             opacity: 0;
-            animation: fadeIn 0.8s ease forwards;
+            animation: fadeInUp 0.8s ease-out forwards;
         }
 
-        .logo {
+        .logo-container {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 72px;
-            height: 72px;
-            background: linear-gradient(135deg, var(--accent), #00b87a);
-            border-radius: 18px;
-            margin-bottom: 24px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 20px;
+            margin-bottom: 28px;
             position: relative;
             box-shadow: 
-                0 0 80px var(--accent-glow),
-                0 20px 40px rgba(0, 0, 0, 0.5);
+                0 0 60px rgba(0, 245, 212, 0.3),
+                0 20px 40px rgba(0, 0, 0, 0.4);
         }
 
-        .logo::after {
+        .logo-container::before {
             content: '';
             position: absolute;
-            inset: -3px;
-            background: linear-gradient(135deg, var(--accent), transparent 50%, #00b87a);
-            border-radius: 20px;
+            inset: -2px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary));
+            border-radius: 22px;
             z-index: -1;
-            opacity: 0.6;
+            animation: borderRotate 3s linear infinite;
         }
 
-        .logo svg {
-            width: 36px;
-            height: 36px;
-            color: var(--bg-primary);
+        @keyframes borderRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        .header h1 {
-            font-size: 42px;
+        .logo-icon {
+            font-size: 36px;
+        }
+
+        .hero h1 {
+            font-size: 48px;
             font-weight: 700;
-            letter-spacing: -1px;
-            margin-bottom: 12px;
-            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 100%);
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-primary) 50%, var(--accent-secondary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
         }
 
-        .header p {
-            font-size: 16px;
+        .hero p {
+            font-size: 18px;
             color: var(--text-secondary);
             font-weight: 300;
+            letter-spacing: 0.5px;
         }
 
-        .card {
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .main-card {
             background: var(--bg-card);
-            backdrop-filter: blur(40px);
-            border: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
             border-radius: 24px;
-            padding: 36px;
+            padding: 40px;
             position: relative;
             overflow: hidden;
             opacity: 0;
-            animation: fadeIn 0.8s ease 0.15s forwards;
+            animation: fadeInUp 0.8s ease-out 0.2s forwards;
         }
 
-        .card::before {
+        .main-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             height: 1px;
-            background: linear-gradient(90deg, transparent, var(--accent-dim), transparent);
-        }
-
-        .input-group {
-            margin-bottom: 20px;
+            background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+            opacity: 0.5;
         }
 
         .input-label {
             display: block;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
-            color: var(--text-muted);
+            color: var(--text-secondary);
             text-transform: uppercase;
-            letter-spacing: 1.2px;
+            letter-spacing: 1.5px;
             margin-bottom: 12px;
             font-family: 'JetBrains Mono', monospace;
         }
 
-        .input-wrap {
+        .input-container {
             position: relative;
             display: flex;
             align-items: center;
@@ -163,104 +249,106 @@
 
         .input-icon {
             position: absolute;
-            left: 18px;
-            color: var(--accent);
-            font-size: 18px;
+            left: 20px;
+            color: var(--accent-primary);
+            font-size: 20px;
             pointer-events: none;
+            transition: transform 0.3s ease;
         }
 
-        .input {
+        .input-field {
             width: 100%;
-            padding: 18px 18px 18px 52px;
-            font-size: 15px;
+            padding: 20px 20px 20px 56px;
+            font-size: 16px;
             font-family: 'JetBrains Mono', monospace;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border);
-            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
             color: var(--text-primary);
             outline: none;
             transition: all 0.3s ease;
         }
 
-        .input::placeholder {
+        .input-field::placeholder {
             color: var(--text-muted);
         }
 
-        .input:focus {
-            border-color: var(--accent);
-            background: rgba(0, 229, 160, 0.03);
-            box-shadow: 0 0 40px var(--accent-dim);
+        .input-field:focus {
+            border-color: var(--accent-primary);
+            background: rgba(0, 245, 212, 0.03);
+            box-shadow: 0 0 30px rgba(0, 245, 212, 0.1);
         }
 
-        .btn-group {
+        .api-actions {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 14px;
+            margin-top: 20px;
         }
 
-        .btn {
+        .api-btn {
             padding: 16px 20px;
             font-size: 14px;
             font-weight: 600;
-            font-family: 'Outfit', sans-serif;
-            border-radius: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+            border-radius: 14px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
         }
 
-        .btn svg {
+        .api-btn.primary {
+            background: linear-gradient(135deg, var(--accent-secondary), #9b4dca);
+            border: none;
+            color: white;
+        }
+
+        .api-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(123, 44, 191, 0.3);
+        }
+
+        .api-btn.secondary {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .api-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+        }
+
+        .api-btn svg {
             width: 18px;
             height: 18px;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent), #00b87a);
-            border: none;
-            color: var(--bg-primary);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 35px var(--accent-dim);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.03);
-            border-color: var(--border-hover);
-            color: var(--text-primary);
-        }
-
-        .result {
-            margin-top: 16px;
+        .result-box {
+            margin-top: 20px;
             padding: 16px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid var(--border);
-            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
             display: none;
         }
 
-        .result.show {
+        .result-box.show {
             display: block;
-            animation: slideUp 0.3s ease;
+            animation: slideIn 0.3s ease;
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(10px); }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .result-label {
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--text-muted);
             text-transform: uppercase;
@@ -270,38 +358,38 @@
         }
 
         .result-url {
-            font-size: 12px;
+            font-size: 13px;
             font-family: 'JetBrains Mono', monospace;
-            color: var(--accent);
+            color: var(--accent-primary);
             word-break: break-all;
-            padding: 12px;
-            background: var(--accent-dim);
-            border-radius: 8px;
-            margin-bottom: 10px;
+            padding: 14px;
+            background: rgba(0, 245, 212, 0.05);
+            border-radius: 10px;
+            margin-bottom: 12px;
         }
 
         .copy-btn {
-            padding: 8px 14px;
-            font-size: 11px;
+            padding: 10px 16px;
+            font-size: 12px;
             font-family: 'JetBrains Mono', monospace;
-            background: var(--accent-dim);
-            border: 1px solid rgba(0, 229, 160, 0.3);
-            border-radius: 6px;
-            color: var(--accent);
+            background: rgba(0, 245, 212, 0.1);
+            border: 1px solid rgba(0, 245, 212, 0.3);
+            border-radius: 8px;
+            color: var(--accent-primary);
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
         }
 
         .copy-btn:hover {
-            background: rgba(0, 229, 160, 0.25);
+            background: rgba(0, 245, 212, 0.2);
         }
 
         .copy-btn.copied {
-            background: var(--accent);
-            color: var(--bg-primary);
+            background: rgba(0, 245, 212, 0.3);
+            color: white;
         }
 
-        .toast {
+        .status-message {
             margin-top: 16px;
             padding: 14px 18px;
             border-radius: 12px;
@@ -312,172 +400,190 @@
             gap: 10px;
         }
 
-        .toast.show {
+        .status-message.success {
             display: flex;
-            animation: slideUp 0.3s ease;
+            background: rgba(0, 245, 212, 0.1);
+            border: 1px solid rgba(0, 245, 212, 0.3);
+            color: var(--accent-primary);
         }
 
-        .toast.success {
-            background: var(--accent-dim);
-            border: 1px solid rgba(0, 229, 160, 0.2);
-            color: var(--accent);
-        }
-
-        .toast.error {
-            background: rgba(255, 100, 100, 0.1);
-            border: 1px solid rgba(255, 100, 100, 0.2);
-            color: #ff6b6b;
-        }
-
-        .divider {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--border), transparent);
-            margin: 32px 0;
-        }
-
-        .stats-bar {
+        .status-message.error {
             display: flex;
-            justify-content: space-between;
-            gap: 16px;
-            opacity: 0;
-            animation: fadeIn 0.8s ease 0.3s forwards;
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: var(--accent-tertiary);
         }
 
-        .stat {
-            flex: 1;
+        .status-icon {
+            font-size: 16px;
+        }
+
+        .stats-section {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .stats-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .stat-item {
             text-align: center;
-            padding: 16px 12px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border);
-            border-radius: 12px;
+            padding: 16px 8px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
             transition: all 0.3s ease;
         }
 
-        .stat:hover {
-            border-color: var(--border-hover);
-            background: rgba(0, 0, 0, 0.4);
+        .stat-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(0, 245, 212, 0.3);
         }
 
         .stat-value {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
             font-family: 'JetBrains Mono', monospace;
-            color: var(--accent);
-            margin-bottom: 4px;
+            color: var(--accent-primary);
+            margin-bottom: 6px;
         }
 
         .stat-label {
-            font-size: 10px;
+            font-size: 11px;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             font-family: 'JetBrains Mono', monospace;
         }
 
         .footer {
-            margin-top: 48px;
             text-align: center;
+            margin-top: 40px;
             opacity: 0;
-            animation: fadeIn 0.8s ease 0.4s forwards;
+            animation: fadeInUp 0.8s ease-out 0.4s forwards;
         }
 
         .github-btn {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 12px 20px;
-            font-size: 13px;
+            gap: 10px;
+            padding: 14px 24px;
+            font-size: 14px;
             font-weight: 500;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             color: var(--text-secondary);
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid var(--border);
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
             text-decoration: none;
             transition: all 0.3s ease;
         }
 
         .github-btn:hover {
             color: var(--text-primary);
-            border-color: var(--border-hover);
-            background: rgba(0, 0, 0, 0.6);
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.08);
             transform: translateY(-2px);
         }
 
         .github-btn svg {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (max-width: 640px) {
-            .header h1 {
-                font-size: 32px;
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+            
+            .hero p {
+                font-size: 16px;
+            }
+            
+            .main-card {
+                padding: 28px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
 
-            .card {
-                padding: 28px 24px;
-            }
-
-            .stats-bar {
-                flex-wrap: wrap;
-            }
-
-            .stat {
-                flex: 1 1 calc(50% - 8px);
-            }
-
-            .stat:first-child {
-                flex: 1 1 100%;
-            }
-
-            .btn-group {
+            .api-actions {
                 grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
+    <div class="noise-overlay"></div>
+    <div class="grid-bg"></div>
+    <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+
     <div class="container">
-        <div class="header">
-            <div class="logo">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-                </svg>
+        <div class="hero">
+            <div class="logo-container">
+                <span class="logo-icon">⚡</span>
             </div>
             <h1>RapidRelay</h1>
             <p>高速文件加速下载服务</p>
         </div>
 
-        <div class="card">
-            <div class="input-group">
-                <label class="input-label">文件链接</label>
-                <div class="input-wrap">
-                    <span class="input-icon">🔗</span>
-                    <input 
-                        type="text" 
-                        id="fileUrl" 
-                        class="input" 
-                        placeholder="粘贴 OneDrive、GitHub 等文件链接..."
-                        autocomplete="off"
-                        spellcheck="false"
-                    >
-                </div>
+        <div class="main-card">
+            <div class="input-container">
+                <span class="input-icon">🔗</span>
+                <input 
+                    type="text" 
+                    id="fileUrl" 
+                    class="input-field" 
+                    placeholder="粘贴 OneDrive、GitHub 等文件链接..."
+                    autocomplete="off"
+                    spellcheck="false"
+                >
             </div>
 
-            <div class="btn-group">
-                <button class="btn btn-primary" onclick="getAccelerateLink()">
+            <div class="api-actions">
+                <button class="api-btn primary" onclick="getAccelerateLink()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
                         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
                     </svg>
                     获取加速链接
                 </button>
-                <button class="btn btn-secondary" onclick="startDownload()">
+                <button class="api-btn secondary" onclick="startDownload()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                         <polyline points="7,10 12,15 17,10"/>
@@ -487,42 +593,45 @@
                 </button>
             </div>
 
-            <div id="result" class="result">
+            <div id="resultBox" class="result-box">
                 <div class="result-label">加速链接</div>
                 <div id="resultUrl" class="result-url"></div>
                 <button id="copyBtn" class="copy-btn" onclick="copyLink()">复制链接</button>
             </div>
 
-            <div id="toast" class="toast">
-                <span id="toastIcon"></span>
-                <span id="toastText"></span>
+            <div id="statusMessage" class="status-message">
+                <span class="status-icon"></span>
+                <span class="status-text"></span>
             </div>
 
-            <div class="divider"></div>
-
-            <div class="input-label" style="margin-bottom: 16px;">实时统计</div>
-            <div class="stats-bar">
-                <div class="stat">
-                    <div class="stat-value" id="totalBandwidth">0 B/s</div>
-                    <div class="stat-label">当前带宽</div>
+            <div class="stats-section">
+                <div class="stats-title">
+                    <span class="live-dot"></span>
+                    实时统计
                 </div>
-                <div class="stat">
-                    <div class="stat-value" id="activeDownloads">0</div>
-                    <div class="stat-label">实时下载</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-value" id="totalDownloads">0</div>
-                    <div class="stat-label">累计下载</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-value" id="totalBytes">0 B</div>
-                    <div class="stat-label">累计流量</div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalBandwidth">0 B/s</div>
+                        <div class="stat-label">当前带宽</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="activeDownloads">0</div>
+                        <div class="stat-label">实时下载</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalDownloads">0</div>
+                        <div class="stat-label">累计下载</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalBytes">0 B</div>
+                        <div class="stat-label">累计流量</div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="footer">
-            <a href="https://github.com" target="_blank" class="github-btn">
+            <a href="https://github.com/txcxgzs/RapidRelay" target="_blank" class="github-btn">
                 <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                 </svg>
@@ -532,7 +641,7 @@
     </div>
 
     <script>
-        let currentUrl = '';
+        let currentAccelerateUrl = '';
         let statsInterval = null;
 
         function formatBytes(bytes) {
@@ -543,75 +652,75 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
         }
 
-        function formatSpeed(bps) {
-            return formatBytes(bps) + '/s';
+        function formatSpeed(bytesPerSecond) {
+            return formatBytes(bytesPerSecond) + '/s';
         }
 
-        function showToast(message, type) {
-            const toast = document.getElementById('toast');
-            const icon = document.getElementById('toastIcon');
-            const text = document.getElementById('toastText');
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('statusMessage');
+            const iconEl = statusEl.querySelector('.status-icon');
+            const textEl = statusEl.querySelector('.status-text');
             
-            text.textContent = message;
-            toast.className = 'toast ' + type + ' show';
-            icon.textContent = type === 'success' ? '✓' : '✕';
-            
-            setTimeout(() => toast.classList.remove('show'), 3000);
+            textEl.textContent = message;
+            statusEl.className = 'status-message ' + type;
+            iconEl.textContent = type === 'success' ? '✓' : '✕';
         }
 
-        function showResult(url) {
-            const result = document.getElementById('result');
+        function hideResultBox() {
+            document.getElementById('resultBox').classList.remove('show');
+        }
+
+        function showResultBox(url) {
+            const resultBox = document.getElementById('resultBox');
             const resultUrl = document.getElementById('resultUrl');
             resultUrl.textContent = url;
-            result.classList.add('show');
-            currentUrl = url;
-        }
-
-        function hideResult() {
-            document.getElementById('result').classList.remove('show');
+            resultBox.classList.add('show');
+            currentAccelerateUrl = url;
         }
 
         async function getAccelerateLink() {
             const fileUrl = document.getElementById('fileUrl').value.trim();
             
             if (!fileUrl) {
-                showToast('请输入文件链接', 'error');
+                showStatus('请输入文件链接', 'error');
                 return;
             }
             
             try {
                 new URL(fileUrl);
             } catch {
-                showToast('请输入有效的 URL', 'error');
+                showStatus('请输入有效的 URL 格式', 'error');
                 return;
             }
             
             try {
-                showToast('正在生成...', 'success');
-                const res = await fetch(`/api/accelerate?url=${encodeURIComponent(fileUrl)}`);
-                const data = await res.json();
+                showStatus('正在生成加速链接...', 'success');
+                
+                const response = await fetch(`/api/accelerate?url=${encodeURIComponent(fileUrl)}`);
+                const data = await response.json();
                 
                 if (data.success) {
-                    showResult(data.data.accelerate_url);
-                    showToast('加速链接已生成', 'success');
+                    showResultBox(data.data.accelerate_url);
+                    showStatus('加速链接已生成！', 'success');
                 } else {
-                    showToast(data.error || '生成失败', 'error');
+                    showStatus(data.error || '生成失败', 'error');
                 }
-            } catch {
-                showToast('网络错误', 'error');
+            } catch (error) {
+                showStatus('网络错误，请重试', 'error');
             }
         }
 
         function copyLink() {
-            if (!currentUrl) return;
+            if (!currentAccelerateUrl) return;
             
-            navigator.clipboard.writeText(currentUrl).then(() => {
-                const btn = document.getElementById('copyBtn');
-                btn.textContent = '已复制!';
-                btn.classList.add('copied');
+            navigator.clipboard.writeText(currentAccelerateUrl).then(() => {
+                const copyBtn = document.getElementById('copyBtn');
+                copyBtn.textContent = '已复制!';
+                copyBtn.classList.add('copied');
+                
                 setTimeout(() => {
-                    btn.textContent = '复制链接';
-                    btn.classList.remove('copied');
+                    copyBtn.textContent = '复制链接';
+                    copyBtn.classList.remove('copied');
                 }, 2000);
             });
         }
@@ -620,27 +729,32 @@
             const fileUrl = document.getElementById('fileUrl').value.trim();
             
             if (!fileUrl) {
-                showToast('请输入文件链接', 'error');
+                showStatus('请输入文件链接', 'error');
                 return;
             }
             
             try {
                 new URL(fileUrl);
             } catch {
-                showToast('请输入有效的 URL', 'error');
+                showStatus('请输入有效的 URL 格式', 'error');
                 return;
             }
             
-            showToast('正在下载...', 'success');
+            showStatus('正在准备下载，请稍候...', 'success');
             window.location.href = '/download?url=' + encodeURIComponent(fileUrl);
         }
 
         async function fetchStats() {
             try {
-                const res = await fetch('/api/stats');
-                const data = await res.json();
-                if (data.success) updateStats(data.data);
-            } catch (e) {}
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateStats(data.data);
+                }
+            } catch (error) {
+                console.error('获取统计失败:', error);
+            }
         }
 
         function updateStats(data) {
@@ -650,18 +764,22 @@
             document.getElementById('totalBytes').textContent = formatBytes(data.totalBytesTransferred);
         }
 
-        function startPolling() {
+        function startStatsPolling() {
             fetchStats();
             statsInterval = setInterval(fetchStats, 2000);
         }
 
-        document.getElementById('fileUrl').addEventListener('keypress', e => {
-            if (e.key === 'Enter') getAccelerateLink();
+        document.getElementById('fileUrl').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                getAccelerateLink();
+            }
         });
 
-        document.getElementById('fileUrl').addEventListener('input', hideResult);
+        document.getElementById('fileUrl').addEventListener('input', function() {
+            hideResultBox();
+        });
 
-        document.addEventListener('DOMContentLoaded', startPolling);
+        document.addEventListener('DOMContentLoaded', startStatsPolling);
     </script>
 </body>
 </html>
