@@ -321,6 +321,19 @@ install_or_update_service() {
     log_info "正在启动服务..."
     echo ""
     
+    # 检查端口是否被占用
+    if lsof -i :"$PORT" > /dev/null 2>&1 || netstat -tuln 2>/dev/null | grep -q ":$PORT "; then
+        log_warn "端口 $PORT 被占用，正在清理..."
+        if command -v fuser &> /dev/null; then
+            fuser -k "$PORT/tcp" 2>/dev/null || true
+        fi
+        if command -v lsof &> /dev/null; then
+            lsof -ti :"$PORT" | xargs -r kill -9 2>/dev/null || true
+        fi
+        pkill -f "node.*server.js" 2>/dev/null
+        sleep 2
+    fi
+    
     nohup npm start > /tmp/rapidrelay.log 2>&1 &
     SERVER_PID=$!
     
