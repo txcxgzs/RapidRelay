@@ -104,7 +104,7 @@ app.get('/download', async (req, res) => {
       
       res.writeHead(200, {
           'Content-Type': remoteRes.headers['content-type'] || 'application/octet-stream',
-          'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
+          'Content-Disposition': `attachment; filename="${filename.replace(/"/g, '\\"')}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
           'Content-Length': contentLength,
           'Access-Control-Allow-Origin': '*'
         });
@@ -182,8 +182,8 @@ app.get('/api/accelerate', (req, res) => {
     });
   }
   
-  const protocol = req.protocol;
-  const host = req.get('host');
+  const protocol = req.get('X-Forwarded-Proto') || req.protocol;
+  const host = req.get('X-Forwarded-Host') || req.get('host');
   const baseUrl = `${protocol}://${host}`;
   const downloadUrl = `${baseUrl}/download?url=${encodeURIComponent(targetUrl)}`;
   
