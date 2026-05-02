@@ -6,6 +6,8 @@
 
 - 🚀 流式实时转发，无需等待完整下载
 - 💾 占用内存极低，不占用服务器存储
+- 🔗 提供 API 接口，可获取加速下载链接
+- 📋 一键复制加速链接，方便分享
 - 🔒 支持 HTTP/HTTPS 协议
 - 📦 支持 GitHub Releases、OneDrive 等链接
 - 🐳 提供 Docker 部署方式
@@ -38,16 +40,45 @@ docker run -d -p 3000:3000 --name rapidrelay rapidrelay
 
 1. 打开浏览器访问 `http://<your-server-ip>:3000`
 2. 在输入框中粘贴文件链接
-3. 点击"立即加速下载"按钮
+3. 点击「获取加速链接」生成并复制加速链接，或点击「直接下载」直接下载文件
 
 ## API 接口
 
-### GET /download
+### GET /api/accelerate
 
-直接通过 API 下载文件：
+获取加速下载链接：
 
 ```
-http://<your-server-ip>:3000/download?url=<文件链接>
+GET http://<your-server-ip>:3000/api/accelerate?url=<原始文件链接>
+```
+
+**响应示例：**
+```json
+{
+  "success": true,
+  "message": "加速链接生成成功",
+  "data": {
+    "original_url": "https://github.com/user/repo/releases/download/v1.0.0/file.zip",
+    "accelerate_url": "http://<your-server-ip>:3000/download?url=https://github.com/...",
+    "usage": "直接访问 accelerate_url 即可进行加速下载"
+  }
+}
+```
+
+### GET /api/info
+
+查看 API 文档和使用说明：
+
+```
+GET http://<your-server-ip>:3000/api/info
+```
+
+### GET /download
+
+直接下载文件（内部使用）：
+
+```
+GET http://<your-server-ip>:3000/download?url=<文件链接>
 ```
 
 ## 支持的链接类型
