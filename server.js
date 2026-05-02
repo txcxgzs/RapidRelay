@@ -10,6 +10,12 @@ app.use(express.static('public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const stats = {
+  totalDownloads: 0,
+  totalBytesTransferred: 0,
+  activeDownloads: new Map()
+};
+
 function parseFileUrl(originalUrl) {
   let directUrl = originalUrl;
   
@@ -49,6 +55,10 @@ function getFilenameFromUrl(urlStr, contentDisposition) {
   return filename || 'download';
 }
 
+function generateDownloadId() {
+  return 'dl_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
 app.get('/download', async (req, res) => {
   const { url: targetUrl } = req.query;
   
@@ -56,48 +66,101 @@ app.get('/download', async (req, res) => {
     return res.status(400).json({ error: '请提供文件链接' });
   }
   
+  const downloadId = generateDownloadId();
+  const downloadInfo = {
+    id: downloadId,
+    url: targetUrl,
+    startTime: Date.now(),
+    bytesTransferred: 0,
+    speed: 0,
+    status: 'connecting'
+  };
+  
+  stats.activeDownloads.set(downloadId, downloadInfo);
+  
   try {
     const directUrl = parseFileUrl(targetUrl);
     const client = getHttpClient(directUrl);
     
-    client.get(directUrl, (remoteRes) => {
+    const req = client.get(directUrl, (remoteRes) => {
       if (remoteRes.statusCode >= 300 && remoteRes.statusCode < 400 && remoteRes.headers.location) {
         const redirectUrl = new URL(remoteRes.headers.location, directUrl).toString();
+        stats.activeDownloads.delete(downloadId);
         return res.redirect(`/download?url=${encodeURIComponent(redirectUrl)}`);
       }
       
       if (remoteRes.statusCode !== 200) {
+        stats.activeDownloads.delete(downloadId);
         return res.status(remoteRes.statusCode).json({ error: '无法获取文件' });
       }
       
       const contentDisposition = remoteRes.headers['content-disposition'];
       const filename = getFilenameFromUrl(directUrl, contentDisposition);
+      const contentLength = parseInt(remoteRes.headers['content-length']) || 0;
+      
+      downloadInfo.filename = filename;
+      downloadInfo.totalSize = contentLength;
+      downloadInfo.status = 'downloading';
       
       res.writeHead(200, {
-        'Content-Type': remoteRes.headers['content-type'] || 'application/octet-stream',
-        'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
-        'Content-Length': remoteRes.headers['content-length'],
-        'Access-Control-Allow-Origin': '*'
-      });
-      
-      remoteRes.pipe(res);
-      
-      remoteRes.on('error', (err) => {
-        console.error('下载错误:', err);
-        if (!res.headersSent) {
-          res.status(500).json({ error: '下载过程中发生错误' });
-        }
-      });
-      
-    }).on('error', (err) => {
-      console.error('请求错误:', err);
-      res.status(500).json({ error: '无法连接到目标服务器' });
-    });
+          'Content-Type': remoteRes.headers['content-type'] || 'application/octet-stream',
+          'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
+          'Content-Length': contentLength,
+          'Access-Control-Allow-Origin': '*'
+        });
+        
+        let lastUpdate = Date.now();
+        let lastBytes = 0;
+        
+        remoteRes.on('data', (chunk) => {
+          downloadInfo.bytesTransferred += chunk.length;
+          
+          const now = Date.now();
+          const elapsed = (now - lastUpdate) / 1000;
+          
+          if (elapsed >= 1) {
+            const bytesDiff = downloadInfo.bytesTransferred - lastBytes;
+            downloadInfo.speed = bytesDiff / elapsed;
+            lastUpdate = now;
+            lastBytes = downloadInfo.bytesTransferred;
+          }
+        });
+        
+        remoteRes.pipe(res);
+       
+       remoteRes.on('end', () => {
+         downloadInfo.status = 'completed';
+         downloadInfo.endTime = Date.now();
+         stats.totalDownloads++;
+         stats.totalBytesTransferred += downloadInfo.bytesTransferred;
+         
+         setTimeout(() => {
+           stats.activeDownloads.delete(downloadId);
+         }, 5000);
+       });
+       
+       remoteRes.on('error', (err) => {
+         console.error('下载错误:', err);
+         downloadInfo.status = 'error';
+         stats.activeDownloads.delete(downloadId);
+         if (!res.headersSent) {
+           res.status(500).json({ error: '下载过程中发生错误' });
+         }
+       });
+       
+     }).on('error', (err) => {
+       console.error('请求错误:', err);
+       downloadInfo.status = 'error';
+       stats.activeDownloads.delete(downloadId);
+       res.status(500).json({ error: '无法连接到目标服务器' });
+     });
     
-  } catch (error) {
-    console.error('处理错误:', error);
-    res.status(500).json({ error: '处理请求时发生错误' });
-  }
+   } catch (error) {
+     console.error('处理错误:', error);
+     downloadInfo.status = 'error';
+     stats.activeDownloads.delete(downloadId);
+     res.status(500).json({ error: '处理请求时发生错误' });
+   }
 });
 
 app.get('/api/accelerate', (req, res) => {
@@ -162,8 +225,35 @@ app.get('/api/info', (req, res) => {
   });
 });
 
+app.get('/api/stats', (req, res) => {
+  const activeList = Array.from(stats.activeDownloads.values()).map(dl => ({
+    filename: dl.filename || 'unknown',
+    url: dl.url,
+    status: dl.status,
+    speed: Math.round(dl.speed),
+    bytesTransferred: dl.bytesTransferred,
+    totalSize: dl.totalSize || 0,
+    progress: dl.totalSize ? Math.round((dl.bytesTransferred / dl.totalSize) * 100) : 0,
+    startTime: dl.startTime
+  }));
+  
+  const totalBandwidth = activeList.reduce((sum, dl) => sum + dl.speed, 0);
+  
+  res.json({
+    success: true,
+    data: {
+      totalDownloads: stats.totalDownloads,
+      totalBytesTransferred: stats.totalBytesTransferred,
+      totalBandwidth: Math.round(totalBandwidth),
+      activeDownloads: activeList.length,
+      downloads: activeList
+    }
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`RapidRelay 服务已启动: http://localhost:${PORT}`);
   console.log(`API 文档: http://localhost:${PORT}/api/info`);
+  console.log(`统计面板: http://localhost:${PORT}/api/stats`);
   console.log(`监听端口: ${PORT}`);
 });

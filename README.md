@@ -8,6 +8,7 @@
 - 💾 占用内存极低，不占用服务器存储
 - 🔗 提供 API 接口，可获取加速下载链接
 - 📋 一键复制加速链接，方便分享
+- 📊 实时监控面板，显示当前带宽和下载进度
 - 🔒 支持 HTTP/HTTPS 协议
 - 📦 支持 GitHub Releases、OneDrive 等链接
 - 🐳 提供 Docker 部署方式
@@ -65,6 +66,38 @@ GET http://<your-server-ip>:3000/api/accelerate?url=<原始文件链接>
 }
 ```
 
+### GET /api/stats
+
+获取实时统计信息（每秒更新）：
+
+```
+GET http://<your-server-ip>:3000/api/stats
+```
+
+**响应示例：**
+```json
+{
+  "success": true,
+  "data": {
+    "totalDownloads": 42,
+    "totalBytesTransferred": 5368709120,
+    "totalBandwidth": 1048576,
+    "activeDownloads": 2,
+    "downloads": [
+      {
+        "filename": "ubuntu-22.04.iso",
+        "url": "https://...",
+        "status": "downloading",
+        "speed": 524288,
+        "bytesTransferred": 104857600,
+        "totalSize": 4294967296,
+        "progress": 2
+      }
+    ]
+  }
+}
+```
+
 ### GET /api/info
 
 查看 API 文档和使用说明：
@@ -75,7 +108,7 @@ GET http://<your-server-ip>:3000/api/info
 
 ### GET /download
 
-直接下载文件（内部使用）：
+直接下载文件：
 
 ```
 GET http://<your-server-ip>:3000/download?url=<文件链接>
