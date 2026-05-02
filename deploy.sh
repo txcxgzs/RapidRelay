@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -56,7 +54,7 @@ echo ""
 
 DEFAULT_PORT=3000
 read -p "请输入服务端口 [默认: $DEFAULT_PORT]: " PORT
-PORT=${PORT:-$DEFAULT_PORT}
+PORT=$(echo "${PORT:-$DEFAULT_PORT}" | tr -d '[:space:]')
 
 if ! [[ "$PORT" =~ ^[0-9]+$ ]] || [ "$PORT" -lt 1 ] || [ "$PORT" -gt 65535 ]; then
     log_error "端口必须是 1-65535 之间的数字"
@@ -83,7 +81,7 @@ echo "      - 服务可直接通过公网 IP:端口 访问"
 echo ""
 
 read -p "请选择监听模式 [默认: 1]: " MODE
-MODE=${MODE:-1}
+MODE=$(echo "${MODE:-1}" | tr -d '[:space:]')
 
 case "$MODE" in
     1)
@@ -108,9 +106,9 @@ esac
 log_info "监听模式: $MODE_DESC ($LISTEN_IP)"
 echo ""
 
-if [ "$MODE" -eq 2 ] || [ "$MODE" -eq 3 ]; then
+if [ "$MODE" = "2" ] || [ "$MODE" = "3" ]; then
     log_warn "注意: 服务将监听所有网络接口"
-    if [ "$MODE" -eq 2 ]; then
+    if [ "$MODE" = "2" ]; then
         log_warn "请确保已配置防火墙规则，限制只允许必要端口访问"
     else
         log_warn "建议配合防火墙或安全组使用，限制访问来源"
@@ -127,33 +125,33 @@ if ! npm install --legacy-peer-deps 2>&1; then
     fi
 fi
 
-if [ $? -ne 0 ]; then
-    log_error "依赖安装失败"
-    exit 1
-fi
-
 log_success "依赖安装完成"
 echo ""
 
-if grep -q '"start":' package.json 2>/dev/null; then
+if [ -f "package.json" ] && grep -q '"start":' package.json 2>/dev/null; then
     ORIGINAL_START=$(grep '"start":' package.json | sed 's/.*"start": *"\([^"]*\)".*/\1/')
     log_info "原始启动命令: $ORIGINAL_START"
 fi
 
-cat > .env 2>/dev/null || true
-if [ -f "package.json" ]; then
-    if grep -q 'PORT' .env 2>/dev/null; then
-        sed -i "s/^PORT=.*/PORT=$PORT/" .env 2>/dev/null || true
-    else
-        echo "PORT=$PORT" >> .env 2>/dev/null || true
+update_env_file() {
+    local key="$1"
+    local value="$2"
+    local file=".env"
+
+    if [ ! -f "$file" ]; then
+        touch "$file" 2>/dev/null || return 1
     fi
 
-    if grep -q 'HOST' .env 2>/dev/null; then
-        sed -i "s/^HOST=.*/HOST=$LISTEN_IP/" .env 2>/dev/null || true
+    if grep -q "^${key}=" "$file" 2>/dev/null; then
+        sed -i "s|^${key}=.*|${key}=${value}|" "$file" 2>/dev/null || return 1
     else
-        echo "HOST=$LISTEN_IP" >> .env 2>/dev/null || true
+        echo "${key}=${value}" >> "$file" 2>/dev/null || return 1
     fi
-fi
+    return 0
+}
+
+update_env_file "PORT" "$PORT"
+update_env_file "HOST" "$LISTEN_IP"
 
 export PORT="$PORT"
 export HOST="$LISTEN_IP"
