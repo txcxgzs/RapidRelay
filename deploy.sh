@@ -57,6 +57,50 @@ get_local_ip() {
     echo "$local_ip"
 }
 
+install_nodejs() {
+    if [ -f "/etc/debian_version" ] || [ -f "/etc/lsb-release" ]; then
+        log_info "检测到 Debian/Ubuntu 系统，正在安装 Node.js..."
+        apt update 2>/dev/null
+        apt install -y curl 2>/dev/null || true
+        
+        if ! command -v nvm &> /dev/null; then
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash 2>/dev/null || true
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+        fi
+        
+        nvm install --lts 2>/dev/null || true
+        nvm use --lts 2>/dev/null || true
+        
+    elif [ -f "/etc/redhat-release" ] || [ -f "/etc/centos-release" ] || [ -f "/etc/fedora-release" ]; then
+        log_info "检测到 RHEL/CentOS/Fedora 系统，正在安装 Node.js..."
+        yum install -y curl 2>/dev/null || dnf install -y curl 2>/dev/null || true
+        
+        if ! command -v nvm &> /dev/null; then
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash 2>/dev/null || true
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+        fi
+        
+        nvm install --lts 2>/dev/null || true
+        nvm use --lts 2>/dev/null || true
+        
+    else
+        log_info "正在尝试通用安装方式..."
+        if ! command -v nvm &> /dev/null; then
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash 2>/dev/null || true
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+        fi
+        
+        nvm install --lts 2>/dev/null || true
+        nvm use --lts 2>/dev/null || true
+    fi
+    
+    echo 'export NVM_DIR="$HOME/.nvm"' >> "$HOME/.bashrc" 2>/dev/null
+    echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"' >> "$HOME/.bashrc" 2>/dev/null
+}
+
 check_command() {
     for attempt in 1 2 3; do
         if command -v "$1" &> /dev/null; then
@@ -81,18 +125,12 @@ check_command() {
 }
 
 setup_nvm
-
 log_info "正在检查环境..."
 
 if ! check_command "node"; then
-    echo ""
-    log_error "Node.js 未安装或未配置环境变量"
-    echo ""
-    echo "  解决方案："
-    echo "  1. 如果使用 nvm，运行: source ~/.bashrc"
-    echo "  2. 或重新加载: export NVM_DIR=\"\$HOME/.nvm\" && . \"\$NVM_DIR/nvm.sh\""
-    echo "  3. 安装 Node.js: https://nodejs.org/"
-    exit 1
+    log_info "Node.js 未安装，正在自动安装..."
+    install_nodejs
+    setup_nvm  # 重新加载环境
 fi
 
 if ! check_command "npm"; then
