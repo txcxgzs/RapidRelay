@@ -324,10 +324,17 @@ install_or_update_service() {
     nohup npm start > /tmp/rapidrelay.log 2>&1 &
     SERVER_PID=$!
     
-    sleep 2
+    sleep 3
     
-    if ! kill -0 $SERVER_PID 2>/dev/null; then
+    if pgrep -f "node.*server.js" > /dev/null; then
+        log_success "服务启动成功！"
+    else
         log_error "服务启动失败，查看日志: tail -f /tmp/rapidrelay.log"
+        if [ -f /tmp/rapidrelay.log ]; then
+            echo ""
+            log_warn "最近的错误日志:"
+            tail -20 /tmp/rapidrelay.log
+        fi
         exit 1
     fi
     

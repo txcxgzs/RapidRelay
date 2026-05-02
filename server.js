@@ -251,9 +251,11 @@ app.get('/api/stats', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`RapidRelay 服务已启动: http://localhost:${PORT}`);
-  console.log(`API 文档: http://localhost:${PORT}/api/info`);
-  console.log(`统计面板: http://localhost:${PORT}/api/stats`);
-  console.log(`监听端口: ${PORT}`);
+const HOST = process.env.HOST || '0.0.0.0';
+app.listen(PORT, HOST, () => {
+  const displayHost = HOST === '0.0.0.0' ? 'localhost' : HOST;
+  console.log(`RapidRelay 服务已启动: http://${displayHost}:${PORT}`);
+  console.log(`API 文档: http://${displayHost}:${PORT}/api/info`);
+  console.log(`统计面板: http://${displayHost}:${PORT}/api/stats`);
+  console.log(`监听地址: ${HOST}:${PORT}`);
 });
