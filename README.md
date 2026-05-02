@@ -6,28 +6,27 @@
 
 - 🚀 流式实时转发，无需等待完整下载
 - 💾 占用内存极低，不占用服务器存储
-- 🔗 提供 API 接口，可获取加速下载链接
+- 🔗 提供 API 接口，可获取加速链接
 - 📋 一键复制加速链接，方便分享
 - 📊 实时统计面板
 - 🔒 支持 HTTP/HTTPS 协议
 - 📦 支持 GitHub Releases、OneDrive 等链接
-- 🐳 提供 Docker 部署方式
 
 ## 快速开始
 
-### 方法一：Node.js 直接部署
-
 ```bash
+# 克隆项目
+git clone https://github.com/txcxgzs/RapidRelay.git
+cd RapidRelay
+
+# 安装依赖
 npm install
+
+# 启动服务
 npm start
 ```
 
-### 方法二：Docker 部署
-
-```bash
-docker build -t rapidrelay .
-docker run -d -p 3000:3000 --name rapidrelay rapidrelay
-```
+服务默认监听 3000 端口，可通过环境变量 `PORT` 修改。
 
 ## API 接口
 
