@@ -8,7 +8,7 @@
 - 💾 占用内存极低，不占用服务器存储
 - 🔗 提供 API 接口，可获取加速下载链接
 - 📋 一键复制加速链接，方便分享
-- 📊 实时监控面板，显示当前带宽和下载进度
+- 📊 实时统计面板
 - 🔒 支持 HTTP/HTTPS 协议
 - 📦 支持 GitHub Releases、OneDrive 等链接
 - 🐳 提供 Docker 部署方式
@@ -18,111 +18,39 @@
 ### 方法一：Node.js 直接部署
 
 ```bash
-# 安装依赖
 npm install
-
-# 启动服务
 npm start
 ```
-
-服务默认监听 3000 端口，可通过环境变量 `PORT` 修改。
 
 ### 方法二：Docker 部署
 
 ```bash
-# 构建镜像
 docker build -t rapidrelay .
-
-# 运行容器
 docker run -d -p 3000:3000 --name rapidrelay rapidrelay
 ```
 
-## 使用方法
-
-1. 打开浏览器访问 `http://<your-server-ip>:3000`
-2. 在输入框中粘贴文件链接
-3. 点击「获取加速链接」生成并复制加速链接，或点击「直接下载」直接下载文件
-
 ## API 接口
 
-### GET /api/accelerate
-
-获取加速下载链接：
+### 获取加速链接
 
 ```
-GET http://<your-server-ip>:3000/api/accelerate?url=<原始文件链接>
+GET /api/accelerate?url=<文件链接>
 ```
 
-**响应示例：**
-```json
-{
-  "success": true,
-  "message": "加速链接生成成功",
-  "data": {
-    "original_url": "https://github.com/user/repo/releases/download/v1.0.0/file.zip",
-    "accelerate_url": "http://<your-server-ip>:3000/download?url=https://github.com/...",
-    "usage": "直接访问 accelerate_url 即可进行加速下载"
-  }
-}
-```
-
-### GET /api/stats
-
-获取实时统计信息（每秒更新）：
+### 获取实时统计
 
 ```
-GET http://<your-server-ip>:3000/api/stats
+GET /api/stats
 ```
 
-**响应示例：**
-```json
-{
-  "success": true,
-  "data": {
-    "totalDownloads": 42,
-    "totalBytesTransferred": 5368709120,
-    "totalBandwidth": 1048576,
-    "activeDownloads": 2,
-    "downloads": [
-      {
-        "filename": "ubuntu-22.04.iso",
-        "url": "https://...",
-        "status": "downloading",
-        "speed": 524288,
-        "bytesTransferred": 104857600,
-        "totalSize": 4294967296,
-        "progress": 2
-      }
-    ]
-  }
-}
-```
-
-### GET /api/info
-
-查看 API 文档和使用说明：
+### 直接下载
 
 ```
-GET http://<your-server-ip>:3000/api/info
-```
-
-### GET /download
-
-直接下载文件：
-
-```
-GET http://<your-server-ip>:3000/download?url=<文件链接>
+GET /download?url=<文件链接>
 ```
 
 ## 支持的链接类型
 
-- GitHub Releases 下载链接
-- OneDrive 直链 (onedrive.live.com, 1drv.ms)
-- 其他任意 HTTP/HTTPS 直接下载链接
-
-## 技术栈
-
-- Node.js 18+
-- Express 4.x
-- 原生 HTTP/HTTPS 模块（流式处理）
-
+- GitHub Releases
+- OneDrive / 1drv.ms
+- 其他 HTTP/HTTPS 直链
